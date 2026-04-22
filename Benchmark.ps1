@@ -17,13 +17,13 @@ Write-Host "Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Write-Host ""
 
 $scores = @{}
-# Reference scores calibrated for typical modern systems (~100% = mid-range)
+# Reference scores calibrated so a high-end system scores ~100%
 $referenceScores = @{
     'CPU' = 75000.0
     'Memory' = 4600.00
-    'Disk' = 3300.00
+    'Disk' = 2600.00
     'GPU' = 1000.0
-    'Network' = 25
+    'Network' = 50
 }
 
 # ============================================

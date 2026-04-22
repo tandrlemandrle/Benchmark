@@ -13,14 +13,14 @@ namespace GorstakBenchmark
 {
     public class BenchmarkEngine
     {
-        /* Calibrated so high-end systems show ~100%; cap display at 100% in UI */
+        /* Calibrated so a high-end system scores ~100%; scores above 100% are possible */
         private static readonly Dictionary<string, double> ReferenceScores = new Dictionary<string, double>
         {
             { "CPU", 2500000.0 },
             { "Memory", 4600.0 },
-            { "Disk", 3300.0 },
+            { "Disk", 2600.0 },
             { "GPU", 500.0 },
-            { "Network", 25.0 }
+            { "Network", 50.0 }
         };
 
         public IProgress<string> Progress { get; set; }

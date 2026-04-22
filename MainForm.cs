@@ -392,7 +392,7 @@ namespace GorstakBenchmark
                 g.DrawArc(pen, x, y, d, d, _spinnerAngle, 100);
         }
 
-        private static double CapPercent(double p) { return Math.Min(100, Math.Round(p, 1)); }
+        private static double CapPercent(double p) { return Math.Round(p, 1); }
 
         private void DisplayResults(BenchmarkResults r)
         {

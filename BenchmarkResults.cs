@@ -36,7 +36,7 @@ namespace GorstakBenchmark
         public DateTime RunDate { get; set; }
         public string OsName { get; set; }
 
-        private static double Cap(double p) { return Math.Min(100, Math.Round(p, 1)); }
+        private static double Cap(double p) { return Math.Round(p, 1); }
 
         public string GetShareableText()
         {
@@ -91,11 +91,11 @@ h1{{color:#333;}} .score{{font-size:1.2em;font-weight:bold;}} .bar{{height:20px;
 <p><small>Gorstak Benchmark Suite</small></p>
 </body></html>",
                 RunDate, OverallScore, OverallPercent, BottleneckType, BottleneckSeverity,
-                CpuScore, CpuPercent, Math.Min(CpuPercent, 100),
-                GpuScore, GpuPercent, Math.Min(GpuPercent, 100),
-                MemoryScore, MemoryPercent, Math.Min(MemoryPercent, 100),
-                DiskScore, DiskPercent, Math.Min(DiskPercent, 100),
-                NetworkScore, NetworkPercent, Math.Min(NetworkPercent, 100));
+                CpuScore, CpuPercent, Math.Min(CpuPercent, 200),
+                GpuScore, GpuPercent, Math.Min(GpuPercent, 200),
+                MemoryScore, MemoryPercent, Math.Min(MemoryPercent, 200),
+                DiskScore, DiskPercent, Math.Min(DiskPercent, 200),
+                NetworkScore, NetworkPercent, Math.Min(NetworkPercent, 200));
         }
     }
 }
