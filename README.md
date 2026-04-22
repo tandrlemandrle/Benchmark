@@ -1,207 +1,114 @@
-# 🧪 Benchmark
+# 📊 Benchmark — Full System Benchmark Suite
 
-> **PowerShell System Performance Benchmark Suite** - Comprehensive CPU, Memory, Disk, GPU, and Network testing tool.
-
----
-
-## 📋 Overview
-
-Benchmark is a comprehensive system performance testing suite written in PowerShell. It provides detailed performance metrics across all major system components with calibrated scoring for easy comparison.
-
-### 🎯 What It Does
-
-- 🖥️ **CPU Benchmarking** - Prime calculation and mathematical operations
-- 🧠 **Memory Testing** - Array operations and random access patterns
-- 💾 **Disk I/O Testing** - Read/write speed analysis
-- 🎮 **GPU Compute Testing** - Matrix multiplication and trigonometric operations
-- 🌐 **Network Testing** - Latency and download speed measurement
-- 📊 **Scored Results** - Calibrated percentage-based performance ratings
+> **PowerShell + C# WinForms Benchmark** — Comprehensive system performance testing with CPU, Memory, Disk, GPU, and Network benchmarks. Features a dark-themed GUI with pie charts, bottleneck detection, and HTML/JSON/Screenshot export.
 
 ---
 
-## 📁 Project Structure
+## ⚡ Overview
+
+Gorstak Benchmark is a dual-implementation system benchmark suite available as both a PowerShell console script and a C# WinForms desktop application. It tests all major system components, calculates percentage scores against calibrated reference values, detects CPU/GPU bottlenecks, and provides multiple export formats for sharing results.
+
+### ✨ Key Features
+
+- 🧮 **CPU Benchmark** — Prime number calculation (up to 50,000) + 1M math operations (sqrt × π)
+- 🧠 **Memory Benchmark** — 10M element array allocation, sequential read, and 100K random access operations
+- 💾 **Disk Benchmark** — 100 MB sequential read/write speed test with temp file cleanup
+- 🎮 **GPU Benchmark** — 200×200 matrix multiplication + 100K trigonometric compute operations
+- 🌐 **Network Benchmark** — Latency test (ping 8.8.8.8, 1.1.1.1, google.com) + download speed test (10 MB file from multiple CDNs)
+- 📈 **Percentage Scoring** — Each component scored against calibrated reference values (~100% = high-end system)
+- 🔍 **Bottleneck Detection** — Identifies CPU vs GPU imbalance with severity rating and upgrade suggestions
+- 🎨 **Dark-Themed GUI** — Blue-on-black WinForms interface with animated spinner and pie chart visualization
+- 📋 **Export Options:**
+  - Copy to clipboard (shareable one-liner)
+  - HTML report with progress bars
+  - JSON export with full component data
+  - JPG screenshot of the application window
+
+---
+
+## 📁 Files
 
 | File | Description |
 |------|-------------|
-| `Benchmark.exe` | Compiled C# GUI executable |
-| `Benchmark.ps1` | Main PowerShell benchmark script |
-| `BenchmarkEngine.cs` | C# benchmarking engine source |
-| `BenchmarkResults.cs` | Results handling source code |
-| `MainForm.cs` | Windows Forms GUI implementation |
-| `Program.cs` | Application entry point |
-| `app.manifest` | Application manifest |
+| `Benchmark.ps1` | PowerShell console benchmark — runs all tests with colored output |
+| `BenchmarkEngine.cs` | C# benchmark engine — async test runner with WMI hardware detection |
+| `BenchmarkResults.cs` | C# results model — scoring, bottleneck analysis, HTML/JSON/text export |
+| `MainForm.cs` | C# WinForms GUI — dark theme, pie chart, spinner, export buttons |
+| `Program.cs` | C# entry point |
+| `build.bat` | Build script for compiling the C# application |
+| `app.manifest` | Application manifest (admin elevation) |
 | `Autorun.ico` | Application icon |
-| `build.bat` | Build automation script |
 
 ---
 
 ## 🚀 Usage
 
-### PowerShell Script
+### PowerShell Version
 
 ```powershell
-# Run the benchmark
-.\Benchmark.ps1
-
-# Results will display in console with color-coded performance ratings
+# Run the console benchmark
+powershell -ExecutionPolicy Bypass -File Benchmark.ps1
 ```
 
-### Compiled Executable
+Output includes color-coded results for each component:
+- 🟦 Cyan: ≥100% (excellent)
+- 🟩 Green: ≥75% (good)
+- 🟨 Yellow: ≥50% (average)
+- 🟥 Red: <50% (below average)
+
+### C# WinForms Version
 
 ```cmd
-# Run the GUI version
-.\Benchmark.exe
+# Build the application
+build.bat
+
+# Run the compiled executable
+Benchmark.exe
 ```
 
-### Build from Source
-
-```cmd
-# Build the C# project
-.\build.bat
-```
-
----
-
-## 📊 Benchmark Tests
-
-### 🖥️ CPU Test
-- **Method**: Prime calculation (up to 50,000) + 1,000,000 math operations
-- **Metrics**: Primes found, execution time, CPU score
-- **Reference Score**: 75,000 points
-- **Display**: Cyan (≥100%), Green (75-99%), Yellow (50-74%), Red (<50%)
-
-### 🧠 Memory Test
-- **Method**: 10 million element array operations
-  - Write test: Populate ArrayList
-  - Read test: Sum all elements
-  - Random access: 100,000 random lookups
-- **Metrics**: Total RAM, execution time, memory score
-- **Reference Score**: 4,600 points
-
-### 💾 Disk I/O Test
-- **Method**: 100 MB sequential read/write
-- **Metrics**: Write MB/s, Read MB/s, average disk score
-- **Reference Score**: 4,600 points
-
-### 🎮 GPU Test
-- **Method**: 200x200 matrix multiplication + 100,000 trig operations
-- **Metrics**: GPU name, VRAM, execution time, GPU score
-- **Reference Score**: 1,000 points
-
-### 🌐 Network Test
-- **Method**:
-  - Latency: Ping to 8.8.8.8, 1.1.1.1, and google.com
-  - Download: 10MB test file from multiple sources
-- **Metrics**: Average latency, download speed Mbps, network score
-- **Reference Score**: 25 points
+The GUI provides:
+1. Click **Run benchmark** to start all tests
+2. Watch the animated spinner and live status updates
+3. View the **pie chart** showing performance breakdown
+4. Check **bottleneck detection** for CPU/GPU balance analysis
+5. Use **Share results** to Copy, Export HTML, Export JSON, or take a Screenshot
 
 ---
 
-## 📈 Scoring System
+## 📐 Reference Scores
 
-All tests use calibrated reference scores based on typical modern mid-range systems:
+Scores are calibrated so a high-end system scores approximately 100%:
 
-| Component | Reference Score | Unit |
-|-----------|----------------|------|
-| CPU | 75,000 | Points |
-| Memory | 4,600 | Points |
-| Disk | 4,600 | MB/s average |
-| GPU | 1,000 | Points |
-| Network | 25 | Mbps + latency |
+| Component | Reference (C#) | Reference (PS) | Test Method |
+|-----------|----------------|-----------------|-------------|
+| CPU | 2,500,000 | 75,000 | Primes to 50K + 1M sqrt×π |
+| Memory | 4,600 | 4,600 | 10M array ops + 100K random access |
+| Disk | 4,600 | 4,600 | 100 MB sequential R/W (MB/s avg) |
+| GPU | 500 | 1,000 | 200×200 matrix multiply + 100K trig |
+| Network | 25 | 25 | Latency + download speed composite |
 
-### Performance Ratings
-- 🔵 **≥ 100%** - Excellent (Above mid-range)
-- 🟢 **75-99%** - Good (Mid-range performance)
-- 🟡 **50-74%** - Fair (Below mid-range)
-- 🔴 **< 50%** - Poor (Significantly below mid-range)
+### Bottleneck Detection
 
----
-
-## 🔧 Technical Details
-
-### PowerShell Script
-- **Language**: PowerShell 5.1+
-- **Dependencies**: Windows Management Instrumentation (WMI)
-- **Elevation**: Not required for basic tests
-
-### C# Application
-- **Framework**: .NET Framework 4.x
-- **UI**: Windows Forms
-- **Architecture**: x64
+| Condition | Result |
+|-----------|--------|
+| CPU% and GPU% within 5% | Balanced (no bottleneck) |
+| Both ≥95% | Balanced |
+| CPU% < GPU% by >5% | CPU bottleneck |
+| GPU% < CPU% by >5% | GPU bottleneck |
+| Severity ≥15% | Upgrade suggestion shown |
 
 ---
 
-## 📋 Requirements
+## ⚙️ Requirements
 
-### Minimum
-- Windows 7 SP1 or later
-- PowerShell 5.1 (for script) or .NET Framework 4.5 (for executable)
-- 100 MB free disk space
-
-### Recommended
-- Windows 10/11
-- Multi-core CPU
-- 8 GB+ RAM
-- SSD for accurate disk testing
-
----
-
-## 🎨 Output Example
-
-```
-========================================
-  POWERSHELL SYSTEM BENCHMARK SUITE
-========================================
-
-System: Microsoft Windows 11 Pro
-PowerShell: 5.1.22621.1778
-Date: 2024-01-15 14:32:10
-
-========================================
-  CPU BENCHMARK
-========================================
-
-[INFO] CPU: Intel(R) Core(TM) i7-12700K
-[INFO] Cores: 12 | Threads: 20
-[INFO] Running prime calculation test...
-
-[RESULT] Primes Found: 5133
-[RESULT] Time: 1.25 seconds
-[RESULT] CPU Score: 80000
-[RESULT] CPU Performance: 106.7%
-
-========================================
-  FINAL RESULTS
-========================================
-
-Component Scores:
-  CPU      : 80000 [106.7%]
-  Memory   : 4800 [104.3%]
-  Disk I/O : 5200 [113.0%]
-  GPU      : 1100 [110.0%]
-  Network  : 28 [112.0%]
-
-========================================
-  OVERALL SCORE: 83720 [109.3%]
-========================================
-```
-
----
-
-## ⚠️ Important Notes
-
-- 📝 Temporary files are created in `%TEMP%` during disk testing and cleaned up automatically
-- 🌐 Network test requires internet connectivity
-- ⏱️ Results may vary based on system load during testing
-- 🔄 For consistent results, close other applications before running
-- 💾 Disk test writes 100 MB - ensure sufficient free space
+| Version | Requirements |
+|---------|-------------|
+| PowerShell | Windows 10/11, PowerShell 5.1+, Internet (for network test) |
+| C# WinForms | .NET Framework 4.x, Windows 10/11, `csc.exe` or Visual Studio |
 
 ---
 
 ## 📜 License & Disclaimer
----
-
-## Comprehensive legal disclaimer
 
 This project is intended for authorized defensive, administrative, research, or educational use only.
 
