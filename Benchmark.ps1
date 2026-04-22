@@ -21,7 +21,7 @@ $scores = @{}
 $referenceScores = @{
     'CPU' = 75000.0
     'Memory' = 4600.00
-    'Disk' = 4600.00
+    'Disk' = 3300.00
     'GPU' = 1000.0
     'Network' = 25
 }

@@ -18,7 +18,7 @@ namespace GorstakBenchmark
         {
             { "CPU", 2500000.0 },
             { "Memory", 4600.0 },
-            { "Disk", 4600.0 },
+            { "Disk", 3300.0 },
             { "GPU", 500.0 },
             { "Network", 25.0 }
         };
