@@ -13,19 +13,18 @@ namespace GorstakBenchmark
 {
     public class BenchmarkEngine
     {
-        /* Reference scores: calibrated from a high-end system (2024-era).
-         * Score formula: constant / elapsed_seconds, so faster = higher score.
-         * C# compiled code runs ~10-50x faster than PowerShell for the same tests.
-         * These values are set so a high-end system scores ~100%.
-         * Mid-range systems will score 40-70%. Budget systems 20-40%.
-         * Scores above 100% are possible for top-tier hardware. */
+        /* Reference scores: calibrated from a high-end system.
+         * Intel Core Ultra 7 265KF / RTX 5070 / 32GB DDR5-7200 / 990 EVO Plus.
+         * Score = constant / elapsed_seconds, so faster hardware = higher score.
+         * These values are set so the reference system scores ~100%.
+         * Mid-range systems will score 40-70%. Budget systems 20-40%. */
         private static readonly Dictionary<string, double> ReferenceScores = new Dictionary<string, double>
         {
-            { "CPU", 36000000.0 },    // 100000 / ~0.003s on fast CPU
-            { "Memory", 2000000.0 },  // 50000 / ~0.025s on fast RAM
-            { "Disk", 2600.0 },       // (writeMBps + readMBps) / 2 on NVMe via .NET
-            { "GPU", 630000.0 },      // 10000 / ~0.016s on fast CPU (matrix math, not actual GPU)
-            { "Network", 50.0 }       // (latencyScore + speedMbps) / 2
+            { "CPU", 36000000.0 },
+            { "Memory", 2030000.0 },
+            { "Disk", 3600.0 },
+            { "GPU", 630000.0 },
+            { "Network", 27.0 }
         };
 
         public IProgress<string> Progress { get; set; }

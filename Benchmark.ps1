@@ -18,11 +18,12 @@ Write-Host ""
 
 $scores = @{}
 # Reference scores calibrated so a high-end system scores ~100%
+# Intel Core Ultra 7 265KF / RTX 5070 / 32GB DDR5-7200 / 990 EVO Plus
 $referenceScores = @{
-    'CPU' = 75000.0
-    'Memory' = 4600.00
-    'Disk' = 2600.00
-    'GPU' = 1000.0
+    'CPU' = 63000.0
+    'Memory' = 5200.00
+    'Disk' = 1700.00
+    'GPU' = 940.0
     'Network' = 50
 }
 
