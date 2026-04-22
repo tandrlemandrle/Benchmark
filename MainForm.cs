@@ -58,8 +58,8 @@ namespace GorstakBenchmark
         private void InitializeComponent()
         {
             Text = "Gorstak Benchmark";
-            Size = new Size(640, 1000);
-            MinimumSize = new Size(580, 640);
+            Size = new Size(660, 1000);
+            MinimumSize = new Size(620, 640);
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.Sizable;
@@ -554,20 +554,25 @@ namespace GorstakBenchmark
             {
                 using (var dlg = new SaveFileDialog())
                 {
-                    dlg.Filter = "JPEG (*.jpg)|*.jpg|All files (*.*)|*.*";
+                    dlg.Filter = "JPEG (*.jpg)|*.jpg|PNG (*.png)|*.png|All files (*.*)|*.*";
                     dlg.DefaultExt = "jpg";
                     dlg.FileName = string.Format("Benchmark_{0:yyyyMMdd_HHmmss}.jpg", DateTime.Now);
                     if (dlg.ShowDialog() != DialogResult.OK) return;
 
                     string path = dlg.FileName;
-                    int w = ClientSize.Width;
-                    int h = ClientSize.Height;
+
+                    // Capture the full content panel (including scrolled-off areas)
+                    int w = _pnlContent.Width;
+                    int h = _pnlContent.Height;
                     if (w < 1) w = 1;
                     if (h < 1) h = 1;
                     using (var bmp = new Bitmap(w, h))
                     {
-                        DrawToBitmap(bmp, new Rectangle(0, 0, w, h));
-                        bmp.Save(path, ImageFormat.Jpeg);
+                        _pnlContent.DrawToBitmap(bmp, new Rectangle(0, 0, w, h));
+                        if (path.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+                            bmp.Save(path, ImageFormat.Png);
+                        else
+                            bmp.Save(path, ImageFormat.Jpeg);
                     }
                     _lblStatus.Text = "Screenshot saved.";
                 }
