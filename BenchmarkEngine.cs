@@ -185,10 +185,21 @@ namespace GorstakBenchmark
 
             try
             {
+                // Write test — use WriteThrough to bypass OS write cache
                 var writeSw = Stopwatch.StartNew();
-                File.WriteAllBytes(path, data);
+                using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough))
+                {
+                    fs.Write(data, 0, data.Length);
+                }
                 writeSw.Stop();
                 double writeMBps = (fileSize / (1024.0 * 1024)) / writeSw.Elapsed.TotalSeconds;
+
+                // Flush OS file cache before read — allocate and discard a large array
+                var dummy = new byte[200 * 1024 * 1024];
+                new Random().NextBytes(dummy);
+                dummy = null;
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
 
                 var readSw = Stopwatch.StartNew();
                 var readData = File.ReadAllBytes(path);
@@ -213,8 +224,46 @@ namespace GorstakBenchmark
                 using (var searcher = new ManagementObjectSearcher("SELECT Name, AdapterRAM, DriverVersion FROM Win32_VideoController"))
                 using (var results = searcher.Get())
                 {
-                    var gpu = results.Cast<ManagementObject>().FirstOrDefault();
+                    // Pick the GPU with the most VRAM (discrete over integrated)
+                    ManagementObject gpu = null;
+                    long bestRam = 0;
+                    foreach (ManagementObject mo in results)
+                    {
+                        long ram = mo["AdapterRAM"] != null ? Convert.ToInt64(Convert.ToUInt32(mo["AdapterRAM"])) : 0;
+                        if (gpu == null || ram > bestRam) { gpu = mo; bestRam = ram; }
+                    }
                     r.GpuName = (gpu != null && gpu["Name"] != null) ? gpu["Name"].ToString() : "Unknown";
+
+                    // AdapterRAM is uint32 (caps at 4GB). Try registry for accurate VRAM.
+                    long vramBytes = 0;
+                    try
+                    {
+                        // Search all display adapter subkeys for the matching GPU
+                        using (var classKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                            @"SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"))
+                        {
+                            if (classKey != null)
+                            {
+                                foreach (string subName in classKey.GetSubKeyNames())
+                                {
+                                    using (var sub = classKey.OpenSubKey(subName))
+                                    {
+                                        if (sub == null) continue;
+                                        var desc = sub.GetValue("DriverDesc") as string;
+                                        if (desc != null && r.GpuName != null && desc.Equals(r.GpuName, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            var qwMem = sub.GetValue("HardwareInformation.qwMemorySize");
+                                            if (qwMem != null) { vramBytes = Convert.ToInt64(qwMem); break; }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                    if (vramBytes <= 0 && gpu != null && gpu["AdapterRAM"] != null)
+                        vramBytes = Convert.ToInt64(Convert.ToUInt32(gpu["AdapterRAM"]));
+                    r.GpuVramGB = Math.Round(vramBytes / (1024.0 * 1024 * 1024), 2);
                 }
             }
             catch { r.GpuName = "Unknown"; }
@@ -296,7 +345,13 @@ namespace GorstakBenchmark
                     var sw = Stopwatch.StartNew();
                     using (var wc = new WebClient())
                     {
-                        wc.DownloadFile(url, path);
+                        // Timeout: abort if download takes longer than 15 seconds
+                        var downloadTask = Task.Run(() => wc.DownloadFile(url, path));
+                        if (!downloadTask.Wait(TimeSpan.FromSeconds(15)))
+                        {
+                            wc.CancelAsync();
+                            throw new TimeoutException("Download timed out");
+                        }
                     }
                     sw.Stop();
                     long len = new FileInfo(path).Length;

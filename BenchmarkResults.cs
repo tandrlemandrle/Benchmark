@@ -20,6 +20,7 @@ namespace GorstakBenchmark
         public double DiskPercent { get; set; }
 
         public string GpuName { get; set; }
+        public double GpuVramGB { get; set; }
         public double GpuScore { get; set; }
         public double GpuPercent { get; set; }
 

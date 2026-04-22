@@ -145,11 +145,20 @@ $fileSize = 100MB
 $data = New-Object byte[] $fileSize
 (New-Object System.Random).NextBytes($data)
 
-# Write test
+# Write test — use WriteThrough to bypass OS write cache
 $writeStart = Get-Date
-[System.IO.File]::WriteAllBytes($testFile, $data)
+$fs = [System.IO.File]::Create($testFile, 4096, [System.IO.FileOptions]::WriteThrough)
+$fs.Write($data, 0, $data.Length)
+$fs.Close()
 $writeTime = (Get-Date) - $writeStart
 $writeMBps = [Math]::Round(($fileSize / 1MB) / $writeTime.TotalSeconds, 2)
+
+# Flush OS file cache before read test to measure real disk speed
+# Write a large dummy allocation to push the test file out of cache
+$dummy = New-Object byte[] (200MB)
+(New-Object System.Random).NextBytes($dummy)
+$dummy = $null
+[System.GC]::Collect()
 
 # Read test
 $readStart = Get-Date
@@ -178,8 +187,26 @@ Write-Host "  GPU BENCHMARK" -ForegroundColor Yellow
 Write-Host "========================================" -ForegroundColor Yellow
 Write-Host ""
 
-$gpu = Get-CimInstance Win32_VideoController | Select-Object -First 1
-$vramGB = [Math]::Round($gpu.AdapterRAM / 1GB, 2)
+$gpu = Get-CimInstance Win32_VideoController |
+    Sort-Object { if ($_.AdapterRAM -gt 0) { $_.AdapterRAM } else { 0 } } -Descending |
+    Select-Object -First 1
+# AdapterRAM is uint32 (caps at 4GB). Use registry for accurate VRAM on modern GPUs.
+$vramBytes = $null
+try {
+    # Search all display adapter registry entries for the matching GPU
+    $classRoot = "HKLM:\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
+    if (Test-Path $classRoot) {
+        Get-ChildItem $classRoot -ErrorAction SilentlyContinue | ForEach-Object {
+            $desc = (Get-ItemProperty $_.PSPath -Name "DriverDesc" -ErrorAction SilentlyContinue).DriverDesc
+            if ($desc -eq $gpu.Name) {
+                $qwMem = (Get-ItemProperty $_.PSPath -Name "HardwareInformation.qwMemorySize" -ErrorAction SilentlyContinue)."HardwareInformation.qwMemorySize"
+                if ($qwMem -and $qwMem -gt 0) { $vramBytes = [long]$qwMem }
+            }
+        }
+    }
+} catch {}
+if (-not $vramBytes -or $vramBytes -le 0) { $vramBytes = [long]$gpu.AdapterRAM }
+$vramGB = [Math]::Round($vramBytes / 1GB, 2)
 Write-Host "[INFO] GPU: $($gpu.Name)" -ForegroundColor Cyan
 Write-Host "[INFO] Driver: $($gpu.DriverVersion)" -ForegroundColor Cyan
 Write-Host "[INFO] VRAM: $vramGB GB" -ForegroundColor Cyan
