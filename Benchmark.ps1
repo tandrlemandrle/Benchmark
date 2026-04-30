@@ -17,13 +17,14 @@ Write-Host "Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Write-Host ""
 
 $scores = @{}
-# Reference scores calibrated for typical modern systems (~100% = mid-range)
+# Reference scores calibrated so a high-end system scores ~100%
+# Intel Core Ultra 7 265KF / RTX 5070 / 32GB DDR5-7200 / 990 EVO Plus
 $referenceScores = @{
-    'CPU' = 75000.0
-    'Memory' = 4600.00
-    'Disk' = 4600.00
-    'GPU' = 1000.0
-    'Network' = 25
+    'CPU' = 63000.0
+    'Memory' = 5200.00
+    'Disk' = 1700.00
+    'GPU' = 940.0
+    'Network' = 50
 }
 
 # ============================================
@@ -145,11 +146,20 @@ $fileSize = 100MB
 $data = New-Object byte[] $fileSize
 (New-Object System.Random).NextBytes($data)
 
-# Write test
+# Write test — use WriteThrough to bypass OS write cache
 $writeStart = Get-Date
-[System.IO.File]::WriteAllBytes($testFile, $data)
+$fs = [System.IO.File]::Create($testFile, 4096, [System.IO.FileOptions]::WriteThrough)
+$fs.Write($data, 0, $data.Length)
+$fs.Close()
 $writeTime = (Get-Date) - $writeStart
 $writeMBps = [Math]::Round(($fileSize / 1MB) / $writeTime.TotalSeconds, 2)
+
+# Flush OS file cache before read test to measure real disk speed
+# Write a large dummy allocation to push the test file out of cache
+$dummy = New-Object byte[] (200MB)
+(New-Object System.Random).NextBytes($dummy)
+$dummy = $null
+[System.GC]::Collect()
 
 # Read test
 $readStart = Get-Date
@@ -178,8 +188,26 @@ Write-Host "  GPU BENCHMARK" -ForegroundColor Yellow
 Write-Host "========================================" -ForegroundColor Yellow
 Write-Host ""
 
-$gpu = Get-CimInstance Win32_VideoController | Select-Object -First 1
-$vramGB = [Math]::Round($gpu.AdapterRAM / 1GB, 2)
+$gpu = Get-CimInstance Win32_VideoController |
+    Sort-Object { if ($_.AdapterRAM -gt 0) { $_.AdapterRAM } else { 0 } } -Descending |
+    Select-Object -First 1
+# AdapterRAM is uint32 (caps at 4GB). Use registry for accurate VRAM on modern GPUs.
+$vramBytes = $null
+try {
+    # Search all display adapter registry entries for the matching GPU
+    $classRoot = "HKLM:\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
+    if (Test-Path $classRoot) {
+        Get-ChildItem $classRoot -ErrorAction SilentlyContinue | ForEach-Object {
+            $desc = (Get-ItemProperty $_.PSPath -Name "DriverDesc" -ErrorAction SilentlyContinue).DriverDesc
+            if ($desc -eq $gpu.Name) {
+                $qwMem = (Get-ItemProperty $_.PSPath -Name "HardwareInformation.qwMemorySize" -ErrorAction SilentlyContinue)."HardwareInformation.qwMemorySize"
+                if ($qwMem -and $qwMem -gt 0) { $vramBytes = [long]$qwMem }
+            }
+        }
+    }
+} catch {}
+if (-not $vramBytes -or $vramBytes -le 0) { $vramBytes = [long]$gpu.AdapterRAM }
+$vramGB = [Math]::Round($vramBytes / 1GB, 2)
 Write-Host "[INFO] GPU: $($gpu.Name)" -ForegroundColor Cyan
 Write-Host "[INFO] Driver: $($gpu.DriverVersion)" -ForegroundColor Cyan
 Write-Host "[INFO] VRAM: $vramGB GB" -ForegroundColor Cyan

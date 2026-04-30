@@ -20,6 +20,7 @@ namespace GorstakBenchmark
         public double DiskPercent { get; set; }
 
         public string GpuName { get; set; }
+        public double GpuVramGB { get; set; }
         public double GpuScore { get; set; }
         public double GpuPercent { get; set; }
 
@@ -35,7 +36,7 @@ namespace GorstakBenchmark
         public DateTime RunDate { get; set; }
         public string OsName { get; set; }
 
-        private static double Cap(double p) { return Math.Min(100, Math.Round(p, 1)); }
+        private static double Cap(double p) { return Math.Round(p, 1); }
 
         public string GetShareableText()
         {
@@ -47,16 +48,17 @@ namespace GorstakBenchmark
         public string GetJson()
         {
             var sb = new StringBuilder();
+            var c = System.Globalization.CultureInfo.InvariantCulture;
             sb.Append("{\r\n");
-            sb.AppendFormat("  \"cpu\": {{\"score\": {0}, \"percent\": {1}, \"name\": \"{2}\"}},\r\n", CpuScore, CpuPercent, EscapeJson(CpuName ?? ""));
-            sb.AppendFormat("  \"memory\": {{\"score\": {0}, \"percent\": {1}, \"ramGB\": {2}}},\r\n", MemoryScore, MemoryPercent, TotalRamGB);
-            sb.AppendFormat("  \"disk\": {{\"score\": {0}, \"percent\": {1}, \"drive\": \"{2}\"}},\r\n", DiskScore, DiskPercent, EscapeJson(DiskDrive ?? ""));
-            sb.AppendFormat("  \"gpu\": {{\"score\": {0}, \"percent\": {1}, \"name\": \"{2}\"}},\r\n", GpuScore, GpuPercent, EscapeJson(GpuName ?? ""));
-            sb.AppendFormat("  \"network\": {{\"score\": {0}, \"percent\": {1}}},\r\n", NetworkScore, NetworkPercent);
-            sb.AppendFormat("  \"overall\": {{\"score\": {0}, \"percent\": {1}}},\r\n", OverallScore, OverallPercent);
-            sb.AppendFormat("  \"bottleneck\": {{\"type\": \"{0}\", \"severity\": {1}}},\r\n", BottleneckType, BottleneckSeverity);
-            sb.AppendFormat("  \"date\": \"{0}\",\r\n", RunDate.ToString("o"));
-            sb.AppendFormat("  \"os\": \"{0}\"\r\n", EscapeJson(OsName ?? ""));
+            sb.AppendFormat(c, "  \"cpu\": {{\"score\": {0}, \"percent\": {1}, \"name\": \"{2}\"}},\r\n", CpuScore, CpuPercent, EscapeJson(CpuName ?? ""));
+            sb.AppendFormat(c, "  \"memory\": {{\"score\": {0}, \"percent\": {1}, \"ramGB\": {2}}},\r\n", MemoryScore, MemoryPercent, TotalRamGB);
+            sb.AppendFormat(c, "  \"disk\": {{\"score\": {0}, \"percent\": {1}, \"drive\": \"{2}\"}},\r\n", DiskScore, DiskPercent, EscapeJson(DiskDrive ?? ""));
+            sb.AppendFormat(c, "  \"gpu\": {{\"score\": {0}, \"percent\": {1}, \"name\": \"{2}\"}},\r\n", GpuScore, GpuPercent, EscapeJson(GpuName ?? ""));
+            sb.AppendFormat(c, "  \"network\": {{\"score\": {0}, \"percent\": {1}}},\r\n", NetworkScore, NetworkPercent);
+            sb.AppendFormat(c, "  \"overall\": {{\"score\": {0}, \"percent\": {1}}},\r\n", OverallScore, OverallPercent);
+            sb.AppendFormat(c, "  \"bottleneck\": {{\"type\": \"{0}\", \"severity\": {1}}},\r\n", BottleneckType, BottleneckSeverity);
+            sb.AppendFormat(c, "  \"date\": \"{0}\",\r\n", RunDate.ToString("o"));
+            sb.AppendFormat(c, "  \"os\": \"{0}\"\r\n", EscapeJson(OsName ?? ""));
             sb.Append("}");
             return sb.ToString();
         }
@@ -89,11 +91,11 @@ h1{{color:#333;}} .score{{font-size:1.2em;font-weight:bold;}} .bar{{height:20px;
 <p><small>Gorstak Benchmark Suite</small></p>
 </body></html>",
                 RunDate, OverallScore, OverallPercent, BottleneckType, BottleneckSeverity,
-                CpuScore, CpuPercent, Math.Min(CpuPercent, 100),
-                GpuScore, GpuPercent, Math.Min(GpuPercent, 100),
-                MemoryScore, MemoryPercent, Math.Min(MemoryPercent, 100),
-                DiskScore, DiskPercent, Math.Min(DiskPercent, 100),
-                NetworkScore, NetworkPercent, Math.Min(NetworkPercent, 100));
+                CpuScore, CpuPercent, Math.Min(CpuPercent, 200),
+                GpuScore, GpuPercent, Math.Min(GpuPercent, 200),
+                MemoryScore, MemoryPercent, Math.Min(MemoryPercent, 200),
+                DiskScore, DiskPercent, Math.Min(DiskPercent, 200),
+                NetworkScore, NetworkPercent, Math.Min(NetworkPercent, 200));
         }
     }
 }

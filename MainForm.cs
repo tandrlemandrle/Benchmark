@@ -58,8 +58,8 @@ namespace GorstakBenchmark
         private void InitializeComponent()
         {
             Text = "Gorstak Benchmark";
-            Size = new Size(640, 1000);
-            MinimumSize = new Size(580, 640);
+            Size = new Size(660, 1000);
+            MinimumSize = new Size(620, 640);
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.Sizable;
@@ -392,13 +392,12 @@ namespace GorstakBenchmark
                 g.DrawArc(pen, x, y, d, d, _spinnerAngle, 100);
         }
 
-        private static double CapPercent(double p) { return Math.Min(100, Math.Round(p, 1)); }
+        private static double CapPercent(double p) { return Math.Round(p, 1); }
 
         private void DisplayResults(BenchmarkResults r)
         {
             _lastResults = r;
-            double overallPct = CapPercent((CapPercent(r.CpuPercent) + CapPercent(r.GpuPercent) + CapPercent(r.MemoryPercent) + CapPercent(r.DiskPercent) + CapPercent(r.NetworkPercent)) / 5);
-            _lblOverall.Text = string.Format("Overall: {0:N0}  ({1}%)", r.OverallScore, overallPct);
+            _lblOverall.Text = string.Format("Overall: {0:N0}  ({1}%)", r.OverallScore, Math.Round(r.OverallPercent, 1));
 
             bool balanced = (r.BottleneckType.IndexOf("None") >= 0) || (r.BottleneckSeverity < 5);
             if (balanced)
@@ -419,11 +418,11 @@ namespace GorstakBenchmark
             _lblStatus.Text = "Complete. Use Share to copy or export.";
 
             _lstScores.Items.Clear();
-            _lstScores.Items.Add(string.Format("CPU      {0,10:N0}   {1}%", r.CpuScore, CapPercent(r.CpuPercent)));
-            _lstScores.Items.Add(string.Format("GPU      {0,10:N0}   {1}%", r.GpuScore, CapPercent(r.GpuPercent)));
-            _lstScores.Items.Add(string.Format("Memory   {0,10:N0}   {1}%", r.MemoryScore, CapPercent(r.MemoryPercent)));
-            _lstScores.Items.Add(string.Format("Disk     {0,10:N0}   {1}%", r.DiskScore, CapPercent(r.DiskPercent)));
-            _lstScores.Items.Add(string.Format("Network  {0,10:N0}   {1}%", r.NetworkScore, CapPercent(r.NetworkPercent)));
+            _lstScores.Items.Add(string.Format("CPU      {0,10:N0}   {1}%", r.CpuScore, Math.Round(r.CpuPercent, 1)));
+            _lstScores.Items.Add(string.Format("GPU      {0,10:N0}   {1}%", r.GpuScore, Math.Round(r.GpuPercent, 1)));
+            _lstScores.Items.Add(string.Format("Memory   {0,10:N0}   {1}%", r.MemoryScore, Math.Round(r.MemoryPercent, 1)));
+            _lstScores.Items.Add(string.Format("Disk     {0,10:N0}   {1}%", r.DiskScore, Math.Round(r.DiskPercent, 1)));
+            _lstScores.Items.Add(string.Format("Network  {0,10:N0}   {1}%", r.NetworkScore, Math.Round(r.NetworkPercent, 1)));
 
             try { _pnlChart.Invalidate(); } catch { }
             _btnCopy.Enabled = _btnExportHtml.Enabled = _btnExportJson.Enabled = _btnScreenshot.Enabled = true;
@@ -446,11 +445,11 @@ namespace GorstakBenchmark
             }
 
             double[] values = {
-                CapPercent(_lastResults.CpuPercent),
-                CapPercent(_lastResults.GpuPercent),
-                CapPercent(_lastResults.MemoryPercent),
-                CapPercent(_lastResults.DiskPercent),
-                CapPercent(_lastResults.NetworkPercent)
+                _lastResults.CpuPercent,
+                _lastResults.GpuPercent,
+                _lastResults.MemoryPercent,
+                _lastResults.DiskPercent,
+                _lastResults.NetworkPercent
             };
             string[] labels = { "CPU", "GPU", "RAM", "Disk", "Net" };
 
@@ -555,20 +554,25 @@ namespace GorstakBenchmark
             {
                 using (var dlg = new SaveFileDialog())
                 {
-                    dlg.Filter = "JPEG (*.jpg)|*.jpg|All files (*.*)|*.*";
+                    dlg.Filter = "JPEG (*.jpg)|*.jpg|PNG (*.png)|*.png|All files (*.*)|*.*";
                     dlg.DefaultExt = "jpg";
                     dlg.FileName = string.Format("Benchmark_{0:yyyyMMdd_HHmmss}.jpg", DateTime.Now);
                     if (dlg.ShowDialog() != DialogResult.OK) return;
 
                     string path = dlg.FileName;
-                    int w = ClientSize.Width;
-                    int h = ClientSize.Height;
+
+                    // Capture the full content panel (including scrolled-off areas)
+                    int w = _pnlContent.Width;
+                    int h = _pnlContent.Height;
                     if (w < 1) w = 1;
                     if (h < 1) h = 1;
                     using (var bmp = new Bitmap(w, h))
                     {
-                        DrawToBitmap(bmp, new Rectangle(0, 0, w, h));
-                        bmp.Save(path, ImageFormat.Jpeg);
+                        _pnlContent.DrawToBitmap(bmp, new Rectangle(0, 0, w, h));
+                        if (path.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+                            bmp.Save(path, ImageFormat.Png);
+                        else
+                            bmp.Save(path, ImageFormat.Jpeg);
                     }
                     _lblStatus.Text = "Screenshot saved.";
                 }
